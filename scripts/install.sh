@@ -69,13 +69,13 @@ function parse_command_line_arguments() {
   fi
 
   case "${RUN_COMMAND}" in
-    --bundle)
-      COMMAND="crmint bundle install ${USE_VPC_FLAG}"
-      ;;
-    *)
-      echo "Unknown command: ${RUN_COMMAND}" >&2
-      exit 2
-      ;;
+  --bundle)
+    COMMAND="crmint bundle install ${USE_VPC_FLAG}"
+    ;;
+  *)
+    echo "Unknown command: ${RUN_COMMAND}" >&2
+    exit 2
+    ;;
   esac
   if [[ ! -z "$COMMAND" ]]; then
     echo "Will run the following command after installing the CRMint command line"
@@ -85,7 +85,7 @@ function parse_command_line_arguments() {
 
 # Function to clone and checkout repository
 function clone_and_checkout_repository() {
-  TARGET_REPO_URL="https://github.com/instant-bqml/crmint.git"
+  TARGET_REPO_URL="https://github.com/tripplerizz/crmint.git"
   TARGET_REPO_NAME="crmint"
   CLONE_DIR="$HOME/$TARGET_REPO_NAME"
 
@@ -121,12 +121,12 @@ function install_command_line() {
   echo "Installing Python 3.9 and necessary packages..."
   sudo apt-get update
   sudo apt-get install -y software-properties-common
-  sudo add-apt-repository ppa:deadsnakes/ppa -y &> /dev/null
+  sudo add-apt-repository ppa:deadsnakes/ppa -y &>/dev/null
   sudo apt-get update -qq
   sudo apt-get install -y -qq python3.9 python3.9-venv python3.9-dev
 
   # Verify Python 3.9 installation
-  if ! command -v python3.9 &> /dev/null; then
+  if ! command -v python3.9 &>/dev/null; then
     echo "Python 3.9 installation failed, exiting."
     exit 1
   fi
@@ -142,7 +142,7 @@ function install_command_line() {
 
   # Upgrade pip, setuptools, and wheel
   echo "Upgrading pip, setuptools, and wheel..."
-  pip install --upgrade pip setuptools wheel &> /dev/null
+  pip install --upgrade pip setuptools wheel &>/dev/null
 
   # Proceed to install the cli package
   echo "Installing CRMint CLI package..."
