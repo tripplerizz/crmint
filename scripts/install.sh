@@ -90,24 +90,14 @@ function clone_and_checkout_repository() {
   CLONE_DIR="$HOME/$TARGET_REPO_NAME"
 
   if [ -d "$CLONE_DIR" ]; then
-    echo "Found existing directory for $TARGET_REPO_NAME"
-    cd "$CLONE_DIR"
-
-    CURRENT_REPO_URL=$(git config --get remote.origin.url)
-    if [ "$CURRENT_REPO_URL" != "$TARGET_REPO_URL" ]; then
-      echo "Switching remote URL from $CURRENT_REPO_URL to $TARGET_REPO_URL"
-      git remote set-url origin "$TARGET_REPO_URL"
-    fi
-    git fetch --all --quiet
-    git reset --hard origin/$TARGET_BRANCH
-    sudo git clean -fdx || echo "Warning: Some files could not be removed. You may need to manually remove files with elevated permissions."
-    git checkout $TARGET_BRANCH
-  else
-    git clone "$TARGET_REPO_URL" "$CLONE_DIR"
-    echo "Cloned $TARGET_REPO_NAME repository to your home directory: $HOME."
-    cd "$CLONE_DIR"
-    git checkout $TARGET_BRANCH
+    echo "Removing existing directory for $TARGET_REPO_NAME"
+    rm -rf "$CLONE_DIR"
   fi
+
+  git clone "$TARGET_REPO_URL" "$CLONE_DIR"
+  echo "Cloned $TARGET_REPO_NAME repository to your home directory: $HOME."
+  cd "$CLONE_DIR"
+  git checkout $TARGET_BRANCH
 }
 
 # Function to install the command line using Python 3.9
@@ -117,11 +107,11 @@ function install_command_line() {
     rm -rf .venv
   fi
 
-  # Install Python 3.9 and its venv module
+  #Install Python 3.9 and its venv module
   echo "Installing Python 3.9 and necessary packages..."
   sudo apt-get update
   sudo apt-get install -y software-properties-common
-  sudo add-apt-repository ppa:deadsnakes/ppa -y &>/dev/null
+  # sudo add-apt-repository ppa:deadsnakes/ppa -y &>/dev/null
   sudo apt-get update -qq
   sudo apt-get install -y -qq python3.9 python3.9-venv python3.9-dev
 
@@ -139,6 +129,10 @@ function install_command_line() {
   # Activate the virtual environment
   echo "Activating virtual environment..."
   . .venv/bin/activate
+  if [ $? -ne 0 ]; then
+    echo "Failed to activate virtual environment, exiting."
+    exit 1
+  fi
 
   # Upgrade pip, setuptools, and wheel
   echo "Upgrading pip, setuptools, and wheel..."
@@ -172,8 +166,14 @@ EOF
 # Function to run the specified command
 function run_command_line() {
   if [[ ! -z "$COMMAND" ]]; then
+    echo "Running command: ${COMMAND} ${COMMAND_OPTIONS}"
     hash -r
     eval "${COMMAND} ${COMMAND_OPTIONS}"
+    COMMAND_RESULT=$?
+    if [ "$COMMAND_RESULT" -ne 0 ]; then
+      echo "Command failed with exit code: $COMMAND_RESULT"
+      exit 1
+    fi
   else
     echo -e "\nSuccessfully installed the CRMint command-line."
     echo "You can use it now by typing: crmint --help"
