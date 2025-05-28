@@ -90,14 +90,24 @@ function clone_and_checkout_repository() {
   CLONE_DIR="$HOME/$TARGET_REPO_NAME"
 
   if [ -d "$CLONE_DIR" ]; then
-    echo "Removing existing directory for $TARGET_REPO_NAME"
-    rm -rf "$CLONE_DIR"
-  fi
+    echo "Found existing directory for $TARGET_REPO_NAME"
+    cd "$CLONE_DIR"
 
-  git clone "$TARGET_REPO_URL" "$CLONE_DIR"
-  echo "Cloned $TARGET_REPO_NAME repository to your home directory: $HOME."
-  cd "$CLONE_DIR"
-  git checkout $TARGET_BRANCH
+    CURRENT_REPO_URL=$(git config --get remote.origin.url)
+    if [ "$CURRENT_REPO_URL" != "$TARGET_REPO_URL" ]; then
+      echo "Switching remote URL from $CURRENT_REPO_URL to $TARGET_REPO_URL"
+      git remote set-url origin "$TARGET_REPO_URL"
+    fi
+    git fetch --all --quiet
+    git reset --hard origin/$TARGET_BRANCH
+    sudo git clean -fdx || echo "Warning: Some files could not be removed. You may need to manually remove files with elevated permissions."
+    git checkout $TARGET_BRANCH
+  else
+    git clone "$TARGET_REPO_URL" "$CLONE_DIR"
+    echo "Cloned $TARGET_REPO_NAME repository to your home directory: $HOME."
+    cd "$CLONE_DIR"
+    git checkout $TARGET_BRANCH
+  fi
 }
 
 # Function to install the command line using Python 3.9
